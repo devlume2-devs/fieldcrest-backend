@@ -3,15 +3,24 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth_middleware');
 const Razorpay = require('razorpay');
 
-// Initialize Razorpay with credentials
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Helper to get Razorpay instance dynamically to prevent startup crashes
+const getRazorpayInstance = () => {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay credentials (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in environment variables.');
+  }
+
+  return new Razorpay({ key_id, key_secret });
+};
 
 router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
   try {
     const { name, email, accountNo, ifsc, pan } = req.body;
+    
+    // Get instance dynamically
+    const razorpay = getRazorpayInstance();
 
     // Create Razorpay Route Linked Account
     const account = await razorpay.accounts.create({

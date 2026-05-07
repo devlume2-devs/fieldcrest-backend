@@ -3,15 +3,25 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth_middleware');
 const Razorpay = require('razorpay');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Helper to get Razorpay instance dynamically to prevent startup crashes
+const getRazorpayInstance = () => {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay credentials (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in environment variables.');
+  }
+
+  return new Razorpay({ key_id, key_secret });
+};
 
 // Create Order with Split Routing
 router.post('/createOrder', authMiddleware, async (req, res) => {
   try {
     const { amount, ownerLinkedAccountId } = req.body; // Amount in paise (e.g., Rs 100 = 10000 paise)
+    
+    // Get instance dynamically
+    const razorpay = getRazorpayInstance();
 
     // Example calculation: Keep 10% platform fee, transfer 90% to Owner
     const platformFee = Math.round(amount * 0.10); 
@@ -46,7 +56,7 @@ router.post('/verifyAndTransfer', authMiddleware, async (req, res) => {
     
     const crypto = require('crypto');
     const generated_signature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
       .update(razorpay_order_id + '|' + razorpay_payment_id)
       .digest('hex');
 
