@@ -18,7 +18,7 @@ const limiter = rateLimit({
   message: { error: 'Too many requests' }
 });
 
-app.use('/api/', limiter);
+app.use('/api', limiter);
 
 //  Routes 
 app.use('/api', require('./routes/payment_routes'));
