@@ -11,6 +11,9 @@ app.use(helmet()); // Sets secure HTTP headers automatically
 app.use(cors({ origin: '*' })); // Flutter apps call from mobile — allow all
 app.use(express.json());
 
+//  Trust Render's Reverse Proxy (required for rate limiter + correct client IP)
+app.set('trust proxy', 1);
+
 //  Rate Limiting 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute window
