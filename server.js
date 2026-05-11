@@ -31,14 +31,17 @@ app.use('/api', require('./routes/subscription_routes'));
 app.use('/api', require('./routes/storage_routes'));
 
 //  Health Check + Env Debug
-app.get('/health', (req, res) => res.json({
-  status: 'FieldCrest API running',
-  env: {
-    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID ? '✅ SET' : '❌ MISSING',
-    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET ? '✅ SET' : '❌ MISSING',
-    API_SECRET_KEY: process.env.API_SECRET_KEY ? '✅ SET' : '❌ MISSING',
-  }
-}));
+app.get('/health', (req, res) => {
+  const mask = (val) => val ? `${val.substring(0,8)}...${val.slice(-4)} (len:${val.length})` : '❌ MISSING';
+  res.json({
+    status: 'FieldCrest API running',
+    env: {
+      RAZORPAY_KEY_ID: mask(process.env.RAZORPAY_KEY_ID),
+      RAZORPAY_KEY_SECRET: mask(process.env.RAZORPAY_KEY_SECRET),
+      API_SECRET_KEY: process.env.API_SECRET_KEY ? '✅ SET' : '❌ MISSING',
+    }
+  });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`FieldCrest API on port ${PORT}`));
