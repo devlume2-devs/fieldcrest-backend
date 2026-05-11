@@ -38,12 +38,8 @@ router.post('/createOrder', authMiddleware, async (req, res) => {
     const order = await razorpay.orders.create(options);
     res.json({ order_id: order.id });
   } catch (error) {
-    console.error('Error creating order:', JSON.stringify(error, null, 2));
-    res.status(500).json({ 
-      error: error.message || 'Unknown error',
-      description: error.error?.description || '',
-      statusCode: error.statusCode || '',
-    });
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: error.message || 'Order creation failed' });
   }
 });
 
