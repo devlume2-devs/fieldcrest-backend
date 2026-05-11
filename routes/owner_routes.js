@@ -19,41 +19,39 @@ router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
   try {
     const { name, email, accountNo, ifsc, pan } = req.body;
     
-    // Get instance dynamically
     const razorpay = getRazorpayInstance();
 
-    // Create Razorpay Route Linked Account
+    // Create Razorpay Route Linked Account (API v2 format)
     const account = await razorpay.accounts.create({
-      type: 'route',
       email: email,
-      phone: req.user?.phone || '9999999999', // Fallback from authenticated user
+      type: 'route',
+      legal_business_name: name,
+      business_type: 'individual',
+      legal_info: {
+        pan: pan,
+      },
       profile: {
-        category: 'sports_and_recreation',
-        subcategory: 'sports_club',
+        category: 'healthcare',
+        subcategory: 'clinic',
         addresses: {
           registered: {
             street1: 'Turf Address',
-            city: 'City',
-            state: 'State',
-            postal_code: '000000',
+            street2: 'NA',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            postal_code: 400001,
             country: 'IN'
           }
         }
       },
-      legal_business_name: name,
-      business_type: 'individual',
-      bank_account: {
-        ifsc_code: ifsc,
-        account_number: accountNo,
-        beneficiary_name: name,
-      }
+      contact_name: name,
     });
 
     // Save this linked_account_id to your owner profile database
     res.json({ linked_account_id: account.id });
   } catch (error) {
-    console.error('Error creating linked account:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error creating linked account:', error?.error || error);
+    res.status(500).json({ error: error?.error?.description || error.message || 'Linked account creation failed' });
   }
 });
 
