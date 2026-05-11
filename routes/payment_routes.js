@@ -15,28 +15,65 @@ const getRazorpayInstance = () => {
   return new Razorpay({ key_id, key_secret });
 };
 
-// Create Order with Split Routing
+// ═══════════════════════════════════════════════════════════════
+// 1. Simple Order — For Subscription Payments (no split/route)
+//    Owner pays FieldCrest → 100% goes to platform
+// ═══════════════════════════════════════════════════════════════
 router.post('/createOrder', authMiddleware, async (req, res) => {
   try {
-    const { amount, ownerLinkedAccountId } = req.body; // Amount in paise (e.g., Rs 100 = 10000 paise)
+    const { amount } = req.body; // Amount in paise (e.g., Rs 999 = 99900 paise)
     
-    // Get instance dynamically
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
     const razorpay = getRazorpayInstance();
 
-    // Example calculation: Keep 10% platform fee, transfer 90% to Owner
-    const platformFee = Math.round(amount * 0.10); 
+    const options = {
+      amount: amount,
+      currency: 'INR',
+      receipt: `sub_${Date.now()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    res.json({ order_id: order.id });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 2. Route Order — For Customer Booking Payments (split to owner)
+//    Customer pays → 90% to turf owner, 10% platform fee
+// ═══════════════════════════════════════════════════════════════
+router.post('/createRouteOrder', authMiddleware, async (req, res) => {
+  try {
+    const { amount, ownerLinkedAccountId } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+    if (!ownerLinkedAccountId) {
+      return res.status(400).json({ error: 'Owner linked account ID is required' });
+    }
+
+    const razorpay = getRazorpayInstance();
+
+    // Keep 10% platform fee, transfer 90% to Owner
+    const platformFee = Math.round(amount * 0.10);
     const transferAmount = amount - platformFee;
 
     const options = {
-      amount: amount, // Total amount paid by customer (paise)
+      amount: amount,
       currency: 'INR',
-      receipt: `receipt_${Date.now()}`,
+      receipt: `book_${Date.now()}`,
       transfers: [
         {
-          account: ownerLinkedAccountId, // Owner's Linked Account ID (acc_xxxxxx)
-          amount: transferAmount,       // Net amount routed to owner (paise)
+          account: ownerLinkedAccountId,
+          amount: transferAmount,
           currency: 'INR',
-          on_hold: false,               // false = Instantly settles to their account
+          on_hold: false,
         }
       ]
     };
@@ -49,7 +86,9 @@ router.post('/createOrder', authMiddleware, async (req, res) => {
   }
 });
 
-// Verification Endpoint
+// ═══════════════════════════════════════════════════════════════
+// 3. Verify Payment Signature
+// ═══════════════════════════════════════════════════════════════
 router.post('/verifyAndTransfer', authMiddleware, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
@@ -61,7 +100,6 @@ router.post('/verifyAndTransfer', authMiddleware, async (req, res) => {
       .digest('hex');
 
     if (generated_signature === razorpay_signature) {
-      // Payment verified! Routing has already been scheduled automatically by the Order
       res.json({ success: true, message: 'Payment verified and split successfully!' });
     } else {
       res.status(400).json({ success: false, message: 'Invalid Signature verification' });
