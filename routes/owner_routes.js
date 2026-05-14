@@ -17,13 +17,14 @@ const getRazorpayInstance = () => {
 
 router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
   try {
-    const { name, email, accountNo, ifsc, pan } = req.body;
+    const { name, email, phone, accountNo, ifsc, pan } = req.body;
     
     const razorpay = getRazorpayInstance();
 
     // Create Razorpay Route Linked Account (API v2 format)
     const account = await razorpay.accounts.create({
       email: email,
+      phone: phone,
       type: 'route',
       legal_business_name: name,
       business_type: 'individual',
