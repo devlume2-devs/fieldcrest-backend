@@ -17,17 +17,37 @@ const getRazorpayInstance = () => {
 
 router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
   try {
-    const { name, email, phone, accountNo, ifsc, pan } = req.body;
+    const { name, email, phone, account_number, ifsc, pan } = req.body;
     
     const razorpay = getRazorpayInstance();
 
-    // Create Razorpay Route Linked Account (API v2 format)
+    const getBusinessType = (panNumber) => {
+      if (!panNumber || panNumber.length < 4) return 'individual';
+      const typeChar = panNumber.charAt(3).toUpperCase();
+      switch (typeChar) {
+        case 'P': return 'individual';
+        case 'C': return 'private_limited';
+        case 'F': return 'partnership';
+        case 'T': return 'trust';
+        case 'H': return 'huf';
+        case 'A':
+        case 'B': return 'society';
+        case 'G':
+        case 'J':
+        case 'L': return 'public_limited';
+        default: return 'individual';
+      }
+    };
+
+    const businessType = getBusinessType(pan);
+
+    // Create Razorpay Route Linked Account
     const account = await razorpay.accounts.create({
       email: email,
       phone: phone,
       type: 'route',
       legal_business_name: name,
-      business_type: 'individual',
+      business_type: businessType,
       legal_info: {
         pan: pan,
       },
@@ -45,14 +65,68 @@ router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
           }
         }
       },
+      bank_account: {
+        account_number: account_number,
+        ifsc_code: ifsc,
+        beneficiary_name: name
+      },
       contact_name: name,
     });
 
-    // Save this linked_account_id to your owner profile database
     res.json({ linked_account_id: account.id });
   } catch (error) {
     console.error('Error creating linked account:', error?.error || error);
     res.status(500).json({ error: error?.error?.description || error.message || 'Linked account creation failed' });
+  }
+});
+
+router.post('/updateLinkedAccount', authMiddleware, async (req, res) => {
+  try {
+    const { linked_account_id, name, email, phone, account_number, ifsc, pan } = req.body;
+    
+    const razorpay = getRazorpayInstance();
+
+    const getBusinessType = (panNumber) => {
+      if (!panNumber || panNumber.length < 4) return 'individual';
+      const typeChar = panNumber.charAt(3).toUpperCase();
+      switch (typeChar) {
+        case 'P': return 'individual';
+        case 'C': return 'private_limited';
+        case 'F': return 'partnership';
+        case 'T': return 'trust';
+        case 'H': return 'huf';
+        case 'A':
+        case 'B': return 'society';
+        case 'G':
+        case 'J':
+        case 'L': return 'public_limited';
+        default: return 'individual';
+      }
+    };
+
+    const businessType = getBusinessType(pan);
+
+    // Update Razorpay Route Linked Account
+    await razorpay.accounts.edit(linked_account_id, {
+      email: email,
+      phone: phone,
+      legal_business_name: name,
+      business_type: businessType,
+      legal_info: {
+        pan: pan,
+      },
+      bank_account: {
+        account_number: account_number,
+        ifsc_code: ifsc,
+        beneficiary_name: name
+      },
+      contact_name: name,
+    });
+
+    res.json({ success: true, message: 'Razorpay linked account updated' });
+  } catch (error) {
+    console.error('Error updating linked account:', error?.error || error);
+    res.status(500).json({ error: error?.error?.description || error.message || 'Linked account update failed' });
   }
 });
 
