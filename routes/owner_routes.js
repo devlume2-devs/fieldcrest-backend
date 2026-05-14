@@ -107,23 +107,17 @@ router.post('/updateLinkedAccount', authMiddleware, async (req, res) => {
     const businessType = getBusinessType(pan);
 
     // Update Razorpay Route Linked Account
+    // Note: Razorpay prevents updating 'email', 'business_type', and 'bank_account' 
+    // after an account is created for security reasons. 
+    // These must be updated through the Razorpay Dashboard or support.
     await razorpay.accounts.edit(linked_account_id, {
-      email: email,
       phone: phone,
       legal_business_name: name,
-      business_type: businessType,
-      legal_info: {
-        pan: pan,
-      },
-      bank_account: {
-        account_number: account_number,
-        ifsc_code: ifsc,
-        beneficiary_name: name
-      },
       contact_name: name,
+      // legal_info: { pan: pan } // Often restricted after verification too
     });
 
-    res.json({ success: true, message: 'Razorpay linked account updated' });
+    res.json({ success: true, message: 'Razorpay profile updated. Note: Bank details must be updated via Razorpay Dashboard for security.' });
   } catch (error) {
     console.error('Error updating linked account:', error?.error || error);
     res.status(500).json({ error: error?.error?.description || error.message || 'Linked account update failed' });
