@@ -114,7 +114,9 @@ router.post('/updateLinkedAccount', authMiddleware, async (req, res) => {
       phone: phone,
       legal_business_name: name,
       contact_name: name,
-      // legal_info: { pan: pan } // Often restricted after verification too
+      legal_info: {
+        pan: pan
+      }
     });
 
     res.json({ success: true, message: 'Razorpay profile updated. Note: Bank details must be updated via Razorpay Dashboard for security.' });
