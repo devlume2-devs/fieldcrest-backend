@@ -170,8 +170,70 @@ const getTurfRegisteredTemplate = (ownerName, turfName) => {
   `;
 };
 
+/**
+ * Customer Welcome Email Template
+ */
+const getCustomerWelcomeTemplate = (customerName) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Welcome to FieldCrest</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F4F6F9; margin: 0; padding: 0; color: #333333; }
+        .container { max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #E5E7EB; }
+        .header { background: linear-gradient(135deg, #00C853, #009624); padding: 40px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+        .header p { color: #E8F5E9; margin: 10px 0 0 0; font-size: 14px; }
+        .content { padding: 40px 30px; line-height: 1.6; }
+        .content p { margin: 0 0 20px 0; font-size: 15px; color: #4A5568; }
+        .content strong { color: #00C853; }
+        .badge-box { background-color: #E8F5E9; border-left: 4px solid #00C853; padding: 18px; border-radius: 8px; margin: 24px 0; }
+        .badge-box h4 { margin: 0 0 8px 0; color: #1B5E20; font-size: 15px; font-weight: 700; }
+        .badge-box p { margin: 0; font-size: 13.5px; color: #1B5E20; }
+        .cta-btn { display: inline-block; background: linear-gradient(135deg, #00C853, #00E676); color: #ffffff !important; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,200,83,0.25); text-align: center; }
+        .footer { background-color: #F8FAFC; padding: 25px; text-align: center; font-size: 12px; color: #94A3B8; border-top: 1px solid #E2E8F0; }
+        .footer p { margin: 0; }
+        .footer a { color: #00C853; text-decoration: none; font-weight: 600; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>FieldCrest</h1>
+          <p>Book. Play. Own the Game.</p>
+        </div>
+        <div class="content">
+          <p>Hi <strong>${customerName}</strong>,</p>
+          <p>Welcome to <strong>FieldCrest</strong>! 🎉 We're thrilled to have you join our community of players and sports enthusiasts.</p>
+          <p>Your account has been successfully created. You're now ready to discover the best turfs in your city, book slots in seconds, and organize games with your friends effortlessly.</p>
+          
+          <div class="badge-box">
+            <h4>🏅 Ready to Play?</h4>
+            <p>From Cricket to Football, find your perfect pitch and book it instantly. No more phone calls, no more waiting.</p>
+          </div>
+          
+          <p style="text-align: center;">
+            <a href="#" class="cta-btn">Start Exploring Turfs</a>
+          </p>
+          
+          <p style="margin-top: 30px;">If you have any questions or need help with your first booking, feel free to reply to this email or reach out to our support team.</p>
+          <p>See you on the field!<br><strong>Team FieldCrest</strong></p>
+        </div>
+        <div class="footer">
+          <p>© 2026 FieldCrest Technologies Pvt Ltd. All rights reserved.</p>
+          <p style="margin-top: 6px;">Need Help? Contact us at <a href="mailto:devlume2@gmail.com">devlume2@gmail.com</a></p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 module.exports = {
   sendMail,
   getWelcomeTemplate,
-  getTurfRegisteredTemplate
+  getTurfRegisteredTemplate,
+  getCustomerWelcomeTemplate
 };

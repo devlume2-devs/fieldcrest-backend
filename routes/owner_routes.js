@@ -17,7 +17,7 @@ const getRazorpayInstance = () => {
 
 router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
   try {
-    const { name, email, phone, account_number, ifsc, pan } = req.body;
+    const { name, email, phone, account_number, ifsc, pan, beneficiary_name } = req.body;
     
     const razorpay = getRazorpayInstance();
 
@@ -68,7 +68,7 @@ router.post('/createLinkedAccount', authMiddleware, async (req, res) => {
       bank_account: {
         account_number: account_number,
         ifsc_code: ifsc,
-        beneficiary_name: name
+        beneficiary_name: beneficiary_name || name
       },
       contact_name: name,
     });
